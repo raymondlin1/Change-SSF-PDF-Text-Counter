@@ -1,0 +1,7 @@
+import download_police_bulletin
+
+def main():
+    download_police_bulletin.func()
+
+if __name__ == '__main__':
+    main()
