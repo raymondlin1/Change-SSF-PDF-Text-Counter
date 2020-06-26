@@ -1,7 +1,12 @@
 import download_police_bulletin
+import PDF_text_counter
+import asyncio
 
-def main():
-    download_police_bulletin.func()
+
+async def main(loop):
+    await download_police_bulletin.download_all(loop)
+    #PDF_text_counter.func()
 
 if __name__ == '__main__':
-    main()
+    curr_loop = asyncio.get_event_loop()
+    curr_loop.run_until_complete(main(curr_loop))
