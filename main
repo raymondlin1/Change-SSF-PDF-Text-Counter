@@ -4,8 +4,9 @@ import asyncio
 
 
 async def main(loop):
-    await download_police_bulletin.download_all(loop)
-    #PDF_text_counter.func()
+    #await download_police_bulletin.download_all(loop)
+    base_path = "./pdfs/"
+    PDF_text_counter.read_all_files(base_path)
 
 if __name__ == '__main__':
     curr_loop = asyncio.get_event_loop()

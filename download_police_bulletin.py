@@ -6,9 +6,11 @@ import asyncio
 import aiohttp
 import math
 
+
 base_url = "http://ssf.net"
 
 
+# downloads all media bulletin pdfs from ssf website
 async def download_all(loop) -> None:
     print("Reading metadata...")
     d = read_metadata()
@@ -25,6 +27,7 @@ async def download_all(loop) -> None:
 
     print("Done pulling from pages. Starting to download each file...")
 
+    # create tasks for each url in our list
     async with aiohttp.ClientSession(loop=loop) as session:
         tasks = []
         for i in range(len(urls)):
@@ -41,6 +44,9 @@ async def download_all(loop) -> None:
         await asyncio.gather(*tasks)
         print("Finished. All pdfs should now be in ./pdfs")
 
+
+# given a url to a particular page of media bulletins, return a list containing all the media bulletin urls in all
+# the pages
 async def get_urls_from_page(url, loop, d):
     ret = []
     async with aiohttp.ClientSession(loop=loop) as session:
@@ -65,6 +71,8 @@ async def get_urls_from_page(url, loop, d):
         return ret
 
 
+# given a url/page that contains many media bulletins, return a list of urls that contains each media
+# bulletin on the page
 async def get_file_urls(url, loop, di):
     async with aiohttp.ClientSession(loop=loop) as session:
         res = await session.get(url)
@@ -84,6 +92,8 @@ async def get_file_urls(url, loop, di):
         return ret
 
 
+# reads the metadata.txt file and populates a dictionary object that determines which pdf files have
+# already been downloaded
 def read_metadata():
     d = {}
     if path.exists("./pdfs/metadata.txt"):
@@ -99,6 +109,8 @@ def read_metadata():
     return d
 
 
+# given a url to a page that contains a single media bulletin, download the pdf file into the
+# ./pdfs directory
 async def download_one_coro(url, session) -> None:
     async with session.get(url) as res:
         if res.status != 200:
@@ -150,3 +162,11 @@ async def download_one_coro(url, session) -> None:
             await res2.release()
 
         await res.release()
+
+
+async def main(loop):
+    await download_all(loop)
+
+if __name__ == '__main__':
+    curr_loop = asyncio.get_event_loop()
+    curr_loop.run_until_complete(main(curr_loop))
