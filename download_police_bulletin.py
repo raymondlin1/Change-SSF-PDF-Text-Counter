@@ -71,7 +71,7 @@ async def get_urls_from_page(url, loop, d):
         return ret
 
 
-# given a url/page that contains many media bulletins, return a list of urls that contains each media
+# given the url of a single page that contains many media bulletins, return a list of urls that contains each media
 # bulletin on the page
 async def get_file_urls(url, loop, di):
     async with aiohttp.ClientSession(loop=loop) as session:

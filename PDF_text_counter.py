@@ -8,19 +8,20 @@ from os import listdir
 from io import StringIO
 import re
 import time
+import csv
 
 
-def read_all_files(inpath):
-    print("Starting processing for all pdfs...")
-    num_files = len(listdir(inpath)) - 1
+def process_all_files(in_path):
+    print("Started processing for all pdfs...")
+    num_files = len(listdir(in_path)) - 1
     d = {}
     count = 0
     start_time = time.time()
     temp_time = time.time()
-    for f in listdir(inpath):
+    for f in listdir(in_path):
         if f.endswith(".pdf"):
             count += 1
-            text = extract_text_from_pdf(path.join(inpath, f))
+            text = extract_text_from_pdf(path.join(in_path, f))
             reasons = extract_reason_for_arrest(text)
             count_occurrences(d, reasons)
 
@@ -37,8 +38,17 @@ def read_all_files(inpath):
         li.append([k, d[k]])
 
     li.sort(reverse=True, key=lambda x: x[1])
-    for l in li:
-        print(l)
+    print("Outputting to csv file...")
+    output_to_csv(li)
+    print("Done!")
+
+
+# given a list of 2-item lists that contains the reason for dispatch and the count,
+# output the 2-item list to a csv file called counts.csv
+def output_to_csv(li):
+    with open('counts.csv', 'w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(li)
 
 
 # given a pdf file, extract the text
