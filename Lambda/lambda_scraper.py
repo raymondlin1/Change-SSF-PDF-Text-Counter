@@ -5,6 +5,7 @@ import boto3
 import requests
 import datetime
 import re
+import pytz
 
 url = "https://www.ssf.net/departments/police/community/media-bulletins/"
 base_url = "http://ssf.net"
@@ -20,14 +21,15 @@ def parse_date(str):
 
 
 def is_yesterday(elem):
-    yesterday_datetime = datetime.date.today() - datetime.timedelta(days=1)
+    yesterday_utc_datetime = pytz.utc.localize(datetime.datetime.utcnow() - datetime.timedelta(days=1))
+    yesterday_pst_datetime = yesterday_utc_datetime.astimezone(pytz.timezone("America/Los_Angeles"))
 
     date_str = elem.find('p', {'class': 'item-date'}).string
     tokens = date_str.split()
     datetime_obj = parse_date(tokens[0])
-    if (datetime_obj.year == yesterday_datetime.year and
-            datetime_obj.month == yesterday_datetime.month and
-            datetime_obj.day == yesterday_datetime.day):
+    if (datetime_obj.year == yesterday_pst_datetime.year and
+            datetime_obj.month == yesterday_pst_datetime.month and
+            datetime_obj.day == yesterday_pst_datetime.day):
         return True
 
     return False
