@@ -30,8 +30,9 @@ async def download_all(loop) -> None:
     # create tasks for each url in our list
     async with aiohttp.ClientSession(loop=loop) as session:
         tasks = []
+        li = []
         for i in range(len(urls)):
-            tasks.append(download_one_coro(urls[i], session))
+            tasks.append(download_one_coro(urls[i], session, li))
             if i != 0 and i % 20 == 0:
                 await asyncio.gather(*tasks)
                 tasks = []
@@ -43,6 +44,7 @@ async def download_all(loop) -> None:
 
         await asyncio.gather(*tasks)
         print("Finished. All pdfs should now be in ./pdfs")
+        return li
 
 
 # given a url to a particular page of media bulletins, return a list containing all the media bulletin urls in all
@@ -111,7 +113,7 @@ def read_metadata():
 
 # given a url to a page that contains a single media bulletin, download the pdf file into the
 # ./pdfs directory
-async def download_one_coro(url, session) -> None:
+async def download_one_coro(url, session, li) -> None:
     async with session.get(url) as res:
         if res.status != 200:
             return
@@ -159,14 +161,8 @@ async def download_one_coro(url, session) -> None:
                 f.write(url)
                 f.write('\n')
 
+            li.append(title)
             await res2.release()
 
         await res.release()
 
-
-async def main(loop):
-    await download_all(loop)
-
-if __name__ == '__main__':
-    curr_loop = asyncio.get_event_loop()
-    curr_loop.run_until_complete(main(curr_loop))

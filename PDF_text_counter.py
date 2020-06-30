@@ -11,20 +11,22 @@ import time
 import csv
 
 
-def process_all_files(in_path):
+def process_all_files(in_path, li):
     print("Started processing for all pdfs...")
-    num_files = len(listdir(in_path)) - 1
+    num_files = len(li)
+    if num_files == 0:
+        print("No new files to process. Finishing...")
+        return
     d = {}
     count = 0
     start_time = time.time()
     temp_time = time.time()
-    for f in listdir(in_path):
-        if f.endswith(".pdf"):
-            count += 1
-            fd = open(path.join(in_path, f), 'rb')
-            text = extract_text_from_pdf(fd)
-            reasons = extract_reason_for_arrest(text)
-            count_occurrences(d, reasons)
+    for f in li:
+        count += 1
+        fd = open(path.join(in_path, f), 'rb')
+        text = extract_text_from_pdf(fd)
+        reasons = extract_reason_for_arrest(text)
+        count_occurrences(d, reasons)
 
         curr_time = time.time()
         diff = curr_time - temp_time
