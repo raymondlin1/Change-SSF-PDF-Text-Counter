@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from PDF_text_counter import extract_text_from_pdf, extract_reason_for_arrest, count_occurrences
+from PDF_text_counter import extract_text_from_pdf, extract_reason_for_arrest, count_occurrences, extract_date_from_title
 from io import BytesIO
 import boto3
 import requests
@@ -23,6 +23,9 @@ def parse_date(str):
 def is_yesterday(elem):
     yesterday_utc_datetime = pytz.utc.localize(datetime.datetime.utcnow() - datetime.timedelta(days=1))
     yesterday_pst_datetime = yesterday_utc_datetime.astimezone(pytz.timezone("America/Los_Angeles"))
+
+    # Dummy variable, remove later
+    # yesterday_pst_datetime = datetime.datetime(2020, 6, 23)
 
     date_str = elem.find('p', {'class': 'item-date'}).string
     tokens = date_str.split()
@@ -58,23 +61,38 @@ def process_new_bulletins(bulletins):
     print("Processing new bulletins...")
     d = {}
     count = 0
+
     for b in bulletins:
         b_url = base_url + b.find('a', {'class': 'item-title'})['href']
-        pdf = get_pdf(b_url)
+        temp = get_pdf(b_url)
+        pdf = temp[0]
+        title = temp[1]
+        date = extract_date_from_title(title)
+        curr_d = {}
         if pdf is not None:
             fd = BytesIO(pdf)
             text = extract_text_from_pdf(fd)
             reasons = extract_reason_for_arrest(text)
-            count_occurrences(d, reasons)
+            count_occurrences(curr_d, reasons)
+
+        for k in curr_d.keys():
+            if k in d.keys():
+                d[k] += curr_d[k]
+            else:
+                d[k] = curr_d[k]
+
+        curr_d["date"] = date
+        update_db_daily_counts(curr_d)
+
         count += 1
         print("Currently processed {} of {} bulletins...".format(count, len(bulletins)))
 
-    print("Updating the database...")
+    print("Updating the reasons_counts in db...")
     for k in d.keys():
         # print("{}: {}".format(k, d[k]))
         curr_count = find_db(k)
         new_count = curr_count + d[k]
-        update_db(k, new_count)
+        update_db_reasons_counts(k, new_count)
 
     print("Update complete.")
 
@@ -91,10 +109,11 @@ def get_pdf(in_url):
 
     full_file_url = base_url + anchor_tag['href']
     res2 = requests.get(full_file_url)
-    return res2.content
+    title = res2.headers['content-disposition']
+    return res2.content, title
 
 
-def update_db(key, value):
+def update_db_reasons_counts(key, value):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('reasons_counts')
     table.update_item(
@@ -107,6 +126,16 @@ def update_db(key, value):
             '#count': "count"
         }
     )
+
+
+def update_db_daily_counts(injson):
+    print("Putting into daily_counts, key {}".format(injson["date"]))
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('daily_reason_counts')
+    res = table.put_item(
+        Item=injson
+    )
+    print("Status code: {}".format(res['ResponseMetadata']['HTTPStatusCode']))
 
 
 def find_db(key):

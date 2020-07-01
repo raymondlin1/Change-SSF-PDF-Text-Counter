@@ -1,9 +1,10 @@
 import os
 import csv
 import boto3
+import json
 
 
-def upload(file_path):
+def upload_totals(file_path):
     if not os.path.exists(file_path):
         print("Error: file not found...")
         return
@@ -21,3 +22,17 @@ def upload(file_path):
             )
             print(res)
 
+
+def upload_daily_counts(file_path):
+    if not os.path.exists(file_path):
+        print("Error: file not found...")
+        return
+
+    fd = open(file_path)
+    date_list = json.load(fd)
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('daily_reason_counts')
+
+    for d in date_list:
+        res = table.put_item(Item=d)
+        print(res)

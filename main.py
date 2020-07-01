@@ -7,18 +7,23 @@ import asyncio
 
 async def main(loop):
     # Download police bulletins locally
-    li = await download_police_bulletin.download_all(loop)
+    # li = await download_police_bulletin.download_all(loop)
 
     # Process all local pdf files in ./pdfs, output a 'counts.csv' file
-    base_path = "./pdfs/"
-    PDF_text_counter.process_all_files(base_path, li)
+    # base_path = "./pdfs/"
+    # PDF_text_counter.process_all_files(base_path, li)
+    # PDF_text_counter.process_daily_counts(base_path)
 
     # Upload data from 'counts.csv' to DynamoDB
     # file_path = "./counts.csv"
-    # upload_counts_to_db.upload(file_path)
+    # upload_counts_to_db.upload_totals(file_path)
+
+    # Upload data from 'daily_counts.json' to DynamoDB
+    # file_path = "./daily_counts.json"
+    # upload_counts_to_db.upload_daily_counts(file_path)
 
     # Run Lambda function
-    # lambda_scraper.main()
+    lambda_scraper.main()
 
 
 if __name__ == '__main__':
