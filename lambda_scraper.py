@@ -56,6 +56,7 @@ def grab_new_bulletins():
 def process_new_bulletins(bulletins):
     if len(bulletins) == 0:
         print("No new bulletins to process...")
+        update_timestamp_db()
         return
 
     print("Processing new bulletins...")
@@ -94,6 +95,7 @@ def process_new_bulletins(bulletins):
         new_count = curr_count + d[k]
         update_db_reasons_counts(k, new_count)
 
+    update_timestamp_db()
     print("Update complete.")
 
 
@@ -143,6 +145,30 @@ def find_db(key):
     table = dynamodb.Table('reasons_counts')
     res = table.get_item(Key={'reason': key})["Item"]
     return res["count"]
+
+
+def update_timestamp_db():
+    print("Updating timestamp in db...")
+    tz = pytz.timezone('America/Los_Angeles')
+    curr_timestamp = round(datetime.datetime.now(tz).timestamp())
+
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('last_updated')
+    res = table.update_item(
+        Key={'key': 'last_updated_time'},
+        UpdateExpression="SET #t=:t",
+        ExpressionAttributeValues={
+            ':t': curr_timestamp
+        },
+        ExpressionAttributeNames={
+            '#t': "timestamp"
+        }
+    )
+    status_code = res['ResponseMetadata']['HTTPStatusCode']
+    if status_code != 200:
+        print("Error updating the db: status code {}.".format(status_code))
+    else:
+        print("Successfully updated timestamp in db.")
 
 
 def main(event=None, lambda_context=None):
