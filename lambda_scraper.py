@@ -83,6 +83,7 @@ def process_new_bulletins(bulletins):
                 d[k] = curr_d[k]
 
         curr_d["date"] = date
+        # updates the daily_reasons_counts table
         update_db_daily_counts(curr_d)
 
         count += 1
@@ -93,12 +94,16 @@ def process_new_bulletins(bulletins):
         # print("{}: {}".format(k, d[k]))
         curr_count = find_db(k)
         new_count = curr_count + d[k]
+
+        # updates the 'reasons_counts' table
         update_db_reasons_counts(k, new_count)
 
+    # updates the 'last_updated' timestamp
     update_timestamp_db()
     print("Update complete.")
 
 
+# given the url to the pdf download page, return the downloaded pdf and its title
 def get_pdf(in_url):
     res = requests.get(in_url)
     page = BeautifulSoup(res.content, 'html.parser')
@@ -143,8 +148,13 @@ def update_db_daily_counts(injson):
 def find_db(key):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('reasons_counts')
-    res = table.get_item(Key={'reason': key})["Item"]
-    return res["count"]
+
+    res = table.get_item(Key={'reason': key})
+    if 'Item' not in res.keys():
+        # print(res)
+        return 0
+
+    return res["Item"]["count"]
 
 
 def update_timestamp_db():

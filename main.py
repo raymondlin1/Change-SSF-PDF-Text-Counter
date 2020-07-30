@@ -3,6 +3,7 @@ import PDF_text_counter
 import lambda_scraper
 import upload_counts_to_db
 import asyncio
+import PDF_address_counter
 
 
 async def main(loop):
@@ -10,7 +11,7 @@ async def main(loop):
     # li = await download_police_bulletin.download_all(loop)
 
     # Process all local pdf files in ./pdfs, output a 'counts.csv' file
-    # base_path = "./pdfs/"
+    #base_path = "./pdfs/"
     # PDF_text_counter.process_all_files(base_path, li)
     # PDF_text_counter.process_daily_counts(base_path)
 
@@ -24,6 +25,9 @@ async def main(loop):
 
     # Run Lambda function
     lambda_scraper.main()
+
+    # Process all local pdf files in ./pdfs, output a 'addresses.csv' file
+    #PDF_address_counter.process_all_files(base_path)
 
 
 if __name__ == '__main__':
