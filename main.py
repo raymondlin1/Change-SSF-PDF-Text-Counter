@@ -10,8 +10,8 @@ async def main(loop):
     # Download police bulletins locally
     # li = await download_police_bulletin.download_all(loop)
 
-    # Process all local pdf files in ./pdfs, output a 'counts.csv' file
-    #base_path = "./pdfs/"
+    # Process all local pdf files in base_path, output a 'counts.csv' file
+    base_path = "./dist/pdfs/"
     # PDF_text_counter.process_all_files(base_path, li)
     # PDF_text_counter.process_daily_counts(base_path)
 
@@ -24,10 +24,10 @@ async def main(loop):
     # upload_counts_to_db.upload_daily_counts(file_path)
 
     # Run Lambda function
-    lambda_scraper.main()
+    # lambda_scraper.main()
 
     # Process all local pdf files in ./pdfs, output a 'addresses.csv' file
-    #PDF_address_counter.process_all_files(base_path)
+    PDF_address_counter.process_all_files(base_path)
 
 
 if __name__ == '__main__':
