@@ -8,7 +8,7 @@ from itertools import chain
 from arcgis.gis import GIS
 from arcgis.geocoding import geocode
 import time
-from PDF_text_counter import output_to_csv
+import csv
 
 
 my_gis = GIS()
@@ -17,28 +17,34 @@ my_gis = GIS()
 # process all files from 'path' parameter and output to a file called 'addresses.csv'
 def process_all_files(in_path):
     print("Starting address processing...")
+    d = read_metadata()
     output_list = []
     start_time = time.time()
     temp_time = time.time()
     num_files = len(listdir(in_path))
-    counter = 0
-    for f in listdir(in_path):
-        fd = open(path.join(in_path, f), 'rb')
-        output_list +=  process_one_file(fd, f)
+    counter = len(d.keys())
 
-        curr_time = time.time()
-        diff = curr_time - temp_time
-        if diff >= 30:
-            m, s = divmod(round(curr_time - start_time), 60)
-            print("Elapsed for {} minutes and {} seconds. Processed {} out of {} files.".format(m, s, counter, num_files))
-            print(output_list)
-            print(len(output_list))
-            temp_time = curr_time
+    with open("address_metadata.txt", "a") as address_metadata_file:
+        for f in listdir(in_path):
+            if f not in d.keys():
+                fd = open(path.join(in_path, f), 'rb')
+                output_list += process_one_file(fd, f)
 
-        counter += 1
+                curr_time = time.time()
+                diff = curr_time - temp_time
+                if diff >= 30:
+                    m, s = divmod(round(curr_time - start_time), 60)
+                    print("Elapsed for {} minutes and {} seconds. Processed {} out of {} files.".format(m, s, counter, num_files))
+                    temp_time = curr_time
 
-    print("Done processing all files. Outputting to csv...")
-    output_to_csv(output_list, "addresses.csv")
+                output_to_csv_append(output_list, "addresses.csv")
+                output_list = []
+                address_metadata_file.write("{}\n".format(f))
+                address_metadata_file.flush()
+                counter += 1
+            else:
+                print("File {} already processed - skipping...".format(f))
+
     print("Finished!")
 
 
@@ -62,7 +68,11 @@ def process_one_file(fd, f):
 
     num_events = len(ret)
     for i in range(num_events):
-        ret[i] += get_lat_long(ret[i][2])
+        # if lat long is the same as (37.653995000000066,-122.41306999999995), then skip it, since it
+        # means it wasn't able to find the address
+        lat_long = get_lat_long(ret[i][2])
+        if lat_long[0] != 37.653995000000066 or lat_long[1] != -122.41306999999995:
+            ret[i] += lat_long
 
     return ret
 
@@ -118,3 +128,28 @@ def get_date_from_file_name(f_name):
 def get_lat_long(single_line_address):
     res = geocode(single_line_address)[0]
     return [res['location']['y'], res['location']['x']]
+
+
+def output_to_csv_append(li, f_name):
+    with open(f_name, 'a', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(li)
+
+
+# read 'address_metadata.txt' to see which files we have processed, returns a dictionary
+def read_metadata():
+    d = {}
+    if path.exists("./address_metadata.txt"):
+        print("Address metadata file exists, going to read it...")
+        file = open("./address_metadata.txt")
+        lines = file.readlines()
+        for li in lines:
+            # remove the \n character
+            li = li[:-1]
+            if li not in d.keys():
+                d[li] = 1
+    else:
+        print("Address metadata file not found - skipping...")
+
+    return d
+
