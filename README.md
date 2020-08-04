@@ -1,4 +1,4 @@
-# Change-SSF-PDF-Text-Counter
+# Change SSF Data Visualization Web App (Backend Scripts)
 
 This is one of the backend repos for ChangeSSF data visualization web app. Here are the links to the other parts of the project:
 * [Backend API](https://github.com/raymondlin1/Change-SSF-API/tree/master)
