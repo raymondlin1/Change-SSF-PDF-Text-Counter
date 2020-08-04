@@ -25,7 +25,7 @@ def is_yesterday(elem):
     yesterday_pst_datetime = yesterday_utc_datetime.astimezone(pytz.timezone("America/Los_Angeles"))
 
     # Dummy variable, remove later
-    # yesterday_pst_datetime = datetime.datetime(2020, 6, 23)
+    # yesterday_pst_datetime = datetime.datetime(2020, 7, 29)
 
     date_str = elem.find('p', {'class': 'item-date'}).string
     tokens = date_str.split()

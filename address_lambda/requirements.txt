@@ -1,0 +1,6 @@
+bs4
+pdfminer
+boto3
+pytz
+psycopg2
+requests

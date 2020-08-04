@@ -3,6 +3,7 @@ import PDF_text_counter
 import lambda_scraper
 import upload_counts_to_db
 import asyncio
+import lambda_address_scraper
 import PDF_address_counter
 
 
@@ -27,7 +28,14 @@ async def main(loop):
     # lambda_scraper.main()
 
     # Process all local pdf files in ./pdfs, output a 'addresses.csv' file
-    PDF_address_counter.process_all_files(base_path)
+    # PDF_address_counter.process_all_files(base_path)
+
+    # Upload data from 'addresses.csv' to DynamoDB
+    # file_path = "./addresses.csv"
+    # upload_counts_to_db.upload_addresses(file_path)
+
+    # Run Lambda address function
+    lambda_address_scraper.main()
 
 
 if __name__ == '__main__':
