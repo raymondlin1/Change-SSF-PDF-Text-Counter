@@ -3,7 +3,7 @@
 This is one of the backend repos for ChangeSSF data visualization web app. Here are the links to the other parts of the project:
 * [Backend API](https://github.com/raymondlin1/Change-SSF-API/tree/master)
 * [Frontend](https://github.com/raymondlin1/Change-SSF-Web-App)
-* [Live Demo](http://changessfwebapp2-env.eba-cpejdgpp.us-west-1.elasticbeanstalk.com)
+* [Live Demo](http://changessfwebapp2-env-1.eba-cpejdgpp.us-west-1.elasticbeanstalk.com/)
 
 This part of the project was developed using Python. 
 
