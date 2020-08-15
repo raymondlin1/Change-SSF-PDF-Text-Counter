@@ -9,6 +9,7 @@ import psycopg2.extras
 import json
 import requests
 import os
+from requests_throttler import BaseThrottler
 
 
 base_url = "http://ssf.net"
@@ -148,16 +149,28 @@ def process_one_file(fd, f):
         print("the addresses list and reasons list is not the same size - file {} - reasons length: {}, addresses length: {}".format(f, len(reasons), len(addresses)))
         return ret
 
-    num_events = len(ret)
-    for i in range(num_events):
-        res = requests.get("https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(ret[i][2], os.environ["GOOGLE_API_KEY"]))
-        d = res.json()
+    reqs = []
+    for i in range(len(ret)):
+        reqs.append(requests.Request(method='GET', url="https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}"
+                                     .format(ret[i][2], os.environ["GOOGLE_API_KEY"])))
+
+    bt = BaseThrottler(name='base-throttler', reqs_over_time=(90, 1))
+    bt.start()
+    responses = bt.multi_submit(reqs)
+    bt.shutdown()
+
+    for i in range(len(ret)):
+        d = responses[i].response.json()
         if 'results' in d and len(d["results"]) > 0 and 'geometry' in d["results"][0] and "location" in d["results"][0]["geometry"]:
             lat_long = d["results"][0]["geometry"]["location"]
             ret[i].append(lat_long["lat"])
             ret[i].append(lat_long["lng"])
         else:
             ret[i] += [None, None]
+
+    # print ret for testing purposes
+    # for r in ret:
+    #    print(r)
 
     return ret
 
